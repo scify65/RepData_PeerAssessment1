@@ -25,7 +25,7 @@ data$date<-as.Date(data$date, "%Y-%m-%d")
 ## What is mean total number of steps taken per day?
 To answer this question, the data needs to first be grouped on the date variable and then the average taken of the number of steps on each day.
 ```{r steps data}
-steps<-data%>%group_by(date)%>%summarise(total_steps=sum(steps))
+steps<-data%>%na.omit()%>%group_by(date)%>%summarise(total_steps=sum(steps))
 ```
 Then a histogram needs to be built, in this case with the ggplot2 system.
 ```{r stepsplot}
@@ -37,7 +37,7 @@ print(steps.plot)
 
 Finally, we'll use the data set we created above to check the overall mean and median for the number of steps taken.
 ```{r stepsavs}
-head(summarize(steps,mean=mean(total_steps),median=median(total_steps)))
+summarize(steps,mean=mean(total_steps),median=median(total_steps))
 ```
 
 ## What is the average daily activity pattern?
