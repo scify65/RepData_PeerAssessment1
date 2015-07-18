@@ -2,22 +2,9 @@
 
 ```r
 require(knitr)
-```
-
-```
-## Warning: package 'knitr' was built under R version 3.2.1
-```
-
-```r
 require(dplyr)
 require(ggplot2)
-```
-
-```
-## Warning: package 'ggplot2' was built under R version 3.2.1
-```
-
-```r
+require(scales)
 opts_chunk$set(echo=TRUE)
 ```
 
@@ -49,12 +36,16 @@ steps.plot<-ggplot(steps,aes(total_steps))+geom_histogram()+
 print(steps.plot)
 ```
 
+```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
+```
+
 ![](PA1_template_files/figure-html/stepsplot-1.png) 
 
 Finally, we'll use the data set we created above to check the overall mean and median for the number of steps taken.
 
 ```r
-head(summarize(steps,mean=mean(total_steps),median=median(total_steps)))
+summarize(steps,mean=mean(total_steps),median=median(total_steps))
 ```
 
 ```
@@ -70,6 +61,8 @@ As with the previous question, the first step here is to make a new data set, th
 ```r
 activity<-data%>%group_by(interval)%>%
     summarize(average_steps=mean(steps,na.rm=TRUE))
+activity$interval<-as.POSIXct(strptime(formatC(activity$interval,width=4,flag=0),
+                            format="%H%M"))
 ```
 
 Then, we build the plot of the time series we've just created, again using ggplot2.
@@ -77,8 +70,12 @@ Then, we build the plot of the time series we've just created, again using ggplo
 ```r
 activ.plot<-ggplot(activity,aes(interval,average_steps))+geom_line()+
     labs(main="Average Steps per Time Interval")+xlab("Interval")+
-    ylab("Step Average")
+    ylab("Step Average")+scale_x_datetime("",labels=date_format("%H:%M"),
+                                          breaks="2 hours")
+print(activ.plot)
 ```
+
+![](PA1_template_files/figure-html/activplot-1.png) 
 
 Finally, we pull up the 5-minute interval with the highest average of steps:
 
@@ -89,8 +86,8 @@ filter(activity,average_steps==max(average_steps))
 ```
 ## Source: local data frame [1 x 2]
 ## 
-##   interval average_steps
-## 1      835      206.1698
+##              interval average_steps
+## 1 2015-07-18 08:35:00      206.1698
 ```
 
 
@@ -117,9 +114,13 @@ Then we'll build a histogram of the new data.
 
 ```r
 miss.plot<-ggplot(miss,aes(total_steps))+geom_histogram()+
-    labs(main="Total Steps per Day with Missings Replaced")+scale_y_continuous(breaks=seq(0,10,2))+
+    labs(main="Total Steps per Day with Missings Replaced")+scale_y_continuous(breaks=seq(0,12,2))+
     xlab("Daily Step Totals")+ylab("Count")
 print(miss.plot)
+```
+
+```
+## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
 ```
 
 ![](PA1_template_files/figure-html/plotcompare-1.png) 
@@ -127,7 +128,7 @@ print(miss.plot)
 Finally, we'll compare the mean and median of the data with imputed values to the original without them.
 
 ```r
-head(summarize(miss,mean=mean(total_steps),median=median(total_steps)))
+summarize(miss,mean=mean(total_steps),median=median(total_steps))
 ```
 
 ```
@@ -138,7 +139,7 @@ head(summarize(miss,mean=mean(total_steps),median=median(total_steps)))
 ```
 
 ```r
-head(summarize(steps,mean=mean(total_steps),median=median(total_steps)))
+summarize(steps,mean=mean(total_steps),median=median(total_steps))
 ```
 
 ```
@@ -158,6 +159,8 @@ data$weekday<-factor((weekdays(data$date) %in% weekend),levels=c("FALSE","TRUE")
                      labels=c("Weekday","Weekend"))
 day<-data%>%group_by(weekday,interval)%>%
     summarize(average_steps=mean(steps,na.rm=TRUE))
+day$interval<-as.POSIXct(strptime(formatC(day$interval,width=4,flag=0),
+                            format="%H%M"))
 ```
 
 Finally, we build a pair of time interval plots that have been faceted on the 'weekday' variable.
@@ -165,7 +168,8 @@ Finally, we build a pair of time interval plots that have been faceted on the 'w
 ```r
 day.plot<-ggplot(day,aes(interval,average_steps))+geom_line()+
     labs(main="Average Steps per Time Interval")+xlab("Interval")+
-    ylab("Step Average")+facet_grid(weekday~.)
+    ylab("Step Average")+facet_grid(weekday~.)+scale_x_datetime("",
+                                labels=date_format("%H:%M"), breaks="2 hours")
 print(day.plot)
 ```
 

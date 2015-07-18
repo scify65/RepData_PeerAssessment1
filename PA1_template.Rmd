@@ -8,7 +8,8 @@ output:
 require(knitr)
 require(dplyr)
 require(ggplot2)
-opts_chunk$set(echo=TRUE)
+require(scales)
+opts_chunk$set(echo=TRUE,message=FALSE)
 ```
 
 ## Loading and preprocessing the data
@@ -45,13 +46,17 @@ As with the previous question, the first step here is to make a new data set, th
 ```{r activity}
 activity<-data%>%group_by(interval)%>%
     summarize(average_steps=mean(steps,na.rm=TRUE))
+activity$interval<-as.POSIXct(strptime(formatC(activity$interval,width=4,flag=0),
+                            format="%H%M"))
 ```
 
 Then, we build the plot of the time series we've just created, again using ggplot2.
 ```{r activplot}
 activ.plot<-ggplot(activity,aes(interval,average_steps))+geom_line()+
     labs(main="Average Steps per Time Interval")+xlab("Interval")+
-    ylab("Step Average")
+    ylab("Step Average")+scale_x_datetime("",labels=date_format("%H:%M"),
+                                          breaks="2 hours")
+print(activ.plot)
 ```
 
 Finally, we pull up the 5-minute interval with the highest average of steps:
@@ -76,15 +81,15 @@ miss<-missing%>%group_by(date)%>%summarise(total_steps=sum(steps))
 Then we'll build a histogram of the new data.
 ```{r plotcompare}
 miss.plot<-ggplot(miss,aes(total_steps))+geom_histogram()+
-    labs(main="Total Steps per Day with Missings Replaced")+scale_y_continuous(breaks=seq(0,10,2))+
+    labs(main="Total Steps per Day with Missings Replaced")+scale_y_continuous(breaks=seq(0,12,2))+
     xlab("Daily Step Totals")+ylab("Count")
 print(miss.plot)
 ```
 
 Finally, we'll compare the mean and median of the data with imputed values to the original without them.
 ```{r avgcomp}
-head(summarize(miss,mean=mean(total_steps),median=median(total_steps)))
-head(summarize(steps,mean=mean(total_steps),median=median(total_steps)))
+summarize(miss,mean=mean(total_steps),median=median(total_steps))
+summarize(steps,mean=mean(total_steps),median=median(total_steps))
 ```
 
 
@@ -96,12 +101,15 @@ data$weekday<-factor((weekdays(data$date) %in% weekend),levels=c("FALSE","TRUE")
                      labels=c("Weekday","Weekend"))
 day<-data%>%group_by(weekday,interval)%>%
     summarize(average_steps=mean(steps,na.rm=TRUE))
+day$interval<-as.POSIXct(strptime(formatC(day$interval,width=4,flag=0),
+                            format="%H%M"))
 ```
 
 Finally, we build a pair of time interval plots that have been faceted on the 'weekday' variable.
 ```{r dayplot}
 day.plot<-ggplot(day,aes(interval,average_steps))+geom_line()+
     labs(main="Average Steps per Time Interval")+xlab("Interval")+
-    ylab("Step Average")+facet_grid(weekday~.)
+    ylab("Step Average")+facet_grid(weekday~.)+scale_x_datetime("",
+                                labels=date_format("%H:%M"), breaks="2 hours")
 print(day.plot)
 ```
