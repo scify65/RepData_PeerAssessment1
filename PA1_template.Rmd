@@ -7,19 +7,51 @@ output:
 
 
 ## Loading and preprocessing the data
+data<-read.csv("activity.csv",colClasses=c("numeric","character","numeric"))
 
-
+#Convert date to a Date variable
+data$date<-as.Date(data$date, "%Y-%m-%d")
 
 ## What is mean total number of steps taken per day?
+steps<-data%>%group_by(date)%>%summarise(total_steps=sum(steps))
+steps.plot<-ggplot(steps,aes(total_steps))+geom_histogram()+
+    labs(main="Total Steps per Day")+scale_y_continuous(breaks=seq(0,10,2))+
+    xlab("Daily Step Totals")+ylab("Count")
+print(steps.plot)
 
-
+head(summarize(steps,mean=mean(total_steps),sd=sd(total_steps)))
 
 ## What is the average daily activity pattern?
+activity<-data%>%group_by(interval)%>%
+    summarize(average_steps=mean(steps,na.rm=TRUE))
+activ.plot<-ggplot(activity,aes(interval,average_steps))+geom_line()+
+    labs(main="Average Steps per Time Interval")+xlab("Interval")+
+    ylab("Step Average")
 
+filter(activity,average_steps==max(average_steps))
 
 
 ## Imputing missing values
+ok<-complete.cases(data)
+sum(!ok)
+missing<-mutate(data, steps = replace(data$steps, is.na(data$steps), 
+                                         activity$average_steps))
+miss<-missing%>%group_by(date)%>%summarise(total_steps=sum(steps))
+miss.plot<-ggplot(miss,aes(total_steps))+geom_histogram()+
+    labs(main="Total Steps per Day")+scale_y_continuous(breaks=seq(0,10,2))+
+    xlab("Daily Step Totals")+ylab("Count")
+print(miss.plot)
 
+head(summarize(miss,mean=mean(total_steps),sd=sd(total_steps)))
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+weekend<-c("Saturday","Sunday")
+data$weekday<-factor((weekdays(data$date) %in% weekend),levels=c("FALSE","TRUE"),
+                     labels=c("Weekday","Weekend"))
+day<-data%>%group_by(weekday,interval)%>%
+    summarize(average_steps=mean(steps,na.rm=TRUE))
+day.plot<-ggplot(day,aes(interval,average_steps))+geom_line()+
+    labs(main="Average Steps per Time Interval")+xlab("Interval")+
+    ylab("Step Average")+facet_grid(weekday~.)
+print(day.plot)
