@@ -5,7 +5,7 @@ require(knitr)
 require(dplyr)
 require(ggplot2)
 require(scales)
-opts_chunk$set(echo=TRUE)
+opts_chunk$set(echo=TRUE,message=FALSE)
 ```
 
 ## Loading and preprocessing the data
@@ -34,10 +34,6 @@ steps.plot<-ggplot(steps,aes(total_steps))+geom_histogram()+
     labs(main="Total Steps per Day")+scale_y_continuous(breaks=seq(0,10,2))+
     xlab("Daily Step Totals")+ylab("Count")
 print(steps.plot)
-```
-
-```
-## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
 ```
 
 ![](PA1_template_files/figure-html/stepsplot-1.png) 
@@ -119,10 +115,6 @@ miss.plot<-ggplot(miss,aes(total_steps))+geom_histogram()+
 print(miss.plot)
 ```
 
-```
-## stat_bin: binwidth defaulted to range/30. Use 'binwidth = x' to adjust this.
-```
-
 ![](PA1_template_files/figure-html/plotcompare-1.png) 
 
 Finally, we'll compare the mean and median of the data with imputed values to the original without them.
@@ -155,9 +147,9 @@ The simplest way to do this is to use the `weekday()` command on the 'date' vari
 
 ```r
 weekend<-c("Saturday","Sunday")
-data$weekday<-factor((weekdays(data$date) %in% weekend),levels=c("FALSE","TRUE"),
+missing$weekday<-factor((weekdays(data$date) %in% weekend),levels=c("FALSE","TRUE"),
                      labels=c("Weekday","Weekend"))
-day<-data%>%group_by(weekday,interval)%>%
+day<-missing%>%group_by(weekday,interval)%>%
     summarize(average_steps=mean(steps,na.rm=TRUE))
 day$interval<-as.POSIXct(strptime(formatC(day$interval,width=4,flag=0),
                             format="%H%M"))

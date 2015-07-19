@@ -97,9 +97,9 @@ summarize(steps,mean=mean(total_steps),median=median(total_steps))
 The simplest way to do this is to use the `weekday()` command on the 'date' variable and create a factor variable based on whether the day is a weekend day or not. Then the data needs to be grouped on the the 'weekday' and 'interval' variables so that the mean number of steps can be taken.
 ```{r weekend}
 weekend<-c("Saturday","Sunday")
-data$weekday<-factor((weekdays(data$date) %in% weekend),levels=c("FALSE","TRUE"),
+missing$weekday<-factor((weekdays(data$date) %in% weekend),levels=c("FALSE","TRUE"),
                      labels=c("Weekday","Weekend"))
-day<-data%>%group_by(weekday,interval)%>%
+day<-missing%>%group_by(weekday,interval)%>%
     summarize(average_steps=mean(steps,na.rm=TRUE))
 day$interval<-as.POSIXct(strptime(formatC(day$interval,width=4,flag=0),
                             format="%H%M"))
